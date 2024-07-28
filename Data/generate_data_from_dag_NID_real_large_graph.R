@@ -1,0 +1,58 @@
+##############
+### 03/23/2024
+### Generate 10 datasets for each real world network from 13pathfinder to 18link
+### n = 5p
+##############
+library(igraph)
+library(MASS)
+library(glue)
+
+data.path = "/Users/tongxu/Downloads/projects/MICODAG-CD/Data"
+setwd(data.path)
+
+
+filenames <- c('13pathfinder', '14munin', '15andes', '16diabetes', '17pigs', '18link')
+number.nodes <- c(109, 186, 223, 413, 441, 724)
+eweights <- c(-0.8, -0.6, 0.6, 0.8)
+sigvec <- c(0.5, 1, 1.5)
+nsamples <- number.nodes*50
+ndata <- 10
+
+#ii=3
+for(ii in 1:length(filenames)){
+  fname = filenames[ii]
+  
+  ## read the edge list 
+  filename <- list.files(glue("{data.path}/RealWorldDatasets/{fname}"), "Sparse_Original")
+  elist <- read.csv(glue("{data.path}/RealWorldDatasets/{fname}/{filename}"))
+  
+  ## create a graph object and get adjacency matrix
+  gg <- graph_from_edgelist(as.matrix(elist))
+  adjmat <- t(as.matrix(get.adjacency(gg)))
+  nv <- ncol(adjmat)
+  
+  ## add weights to the adjacency matrix and obtain influence matrix
+  set.seed(ii)
+  adjmat_wgtd <- adjmat * 
+    matrix(sample(eweights, nv*nv, replace=T), nv, nv) 
+  Ip <- diag(1, nv, nv)
+  infmat <- solve(Ip - adjmat_wgtd)
+  
+  ## covariance matrix for random noise with non-equal variance
+  ## using formulas in Shojaie & Michailidis (2010)
+  set.seed(ii)
+  covmat <- diag(sample(sigvec, nv, replace=T))
+  covmat <- infmat %*% covmat %*% t(infmat)
+  
+  ## generate data and write it into the same folder
+  for(jj in 1:ndata){
+    set.seed(jj)
+    datmat <- mvrnorm(n=nsamples[ii], mu=rep(0,nv), Sigma=covmat)
+    
+    datfilename <- paste0(
+      paste("data", fname, "n", nsamples[ii], "iter", jj, sep="_"), ".csv")
+    datfilename <- glue("{data.path}/RealWorldDatasets/{fname}/{datfilename}")
+    write.table(datmat, datfilename, sep = ",", 
+                row.names=FALSE, col.names=FALSE)
+  }
+}
