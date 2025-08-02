@@ -1,12 +1,13 @@
 # from micodagcd import *
-import numpy as np
 
-from Code.src.cd_spacer import *
-from Code.src.node_regression import regression, regression_l0learn
+from src.cd_spacer import *
+from src.node_regression import regression_l0learn
 from scipy.sparse.csgraph import floyd_warshall
 import time
 import os
 
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def count_violations_by_adjacency(A_true, A_permuted):
     """
@@ -36,7 +37,7 @@ def count_violations_by_adjacency(A_true, A_permuted):
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../../Data/RealWorldDatasetsTXu_smallalpha/"
+    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasetsTXu_smallalpha/")
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     file_path = folder_path + f"{network}"
     graph_name = [i for i in os.listdir(
@@ -79,7 +80,7 @@ for dataset in datasets:
         new_true_moral = true_moral[random_order, :][:, random_order]
         new_data = data[list(data.columns[random_order])]
 
-        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'{current_dir}/../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         # estimated_moral = true_moral
         new_estimated_moral = estimated_moral[random_order, :][:, random_order]

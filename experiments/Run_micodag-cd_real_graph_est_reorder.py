@@ -1,14 +1,16 @@
 # from micodagcd import *
 
-from Code.src.cd_spacer import *
+from src.cd_spacer import *
 
 import time
 import os
-from sklearn.covariance import GraphicalLasso
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../../Data/RealWorldDatasetsTXu_smallalpha/"
+    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasetsTXu_smallalpha/")
     # folder_path = "/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/"
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     file_path = folder_path + f"{network}"
@@ -63,7 +65,7 @@ for dataset in datasets:
         # start_G2[np.abs(start_G2) < 0.3] = 0
         # print(start_G2)
 
-        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'{current_dir}/../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         new_estimated_moral = estimated_moral[random_order, :][:, random_order]
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))

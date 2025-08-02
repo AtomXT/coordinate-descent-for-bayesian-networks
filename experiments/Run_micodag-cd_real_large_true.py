@@ -1,12 +1,15 @@
 # from micodagcd import *
-from Code.src.cd_spacer import *
+from src.cd_spacer import *
 import time
 # import closed_form as cf
-from sklearn.covariance import graphical_lasso as glasso
+import os
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../../Data/RealWorldDatasets/"
+    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasets/")
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     graph_path = folder_path + network + "/Sparse_Original_edges.txt"
     true_moral_path = folder_path + network + "/Sparse_Moral_edges.txt"
@@ -22,12 +25,10 @@ def read_data(network, n=500, iter=1):
     return data, graph_, true_moral_
 
 datasets = ['13pathfinder', '15andes', '16diabetes']
-n_samples = np.array([545, 1115, 2065])
-
+n_samples = [545, 1115, 2065]
 
 results = []
-# dataset = "17pigs"
-for ii in range(3):
+for ii in range(0, 4):
     dataset = datasets[ii]
     n_sample = n_samples[ii]
     d_cpdags = []
@@ -40,7 +41,7 @@ for ii in range(3):
         # sigma = np.cov(data.T)
         # ests = cf.closed_form(data.values.T, np.log(P)/N)
         # estimated_precision = ests.A
-        # estimated_precision[np.abs(estimated_precision) < 0.1] = 0
+        # estimated_precision[np.abs(estimated_precision) < 0.05] = 0
         # precision_skeleton = np.triu(estimated_precision != 0, 1)
         # estimated_moral = precision_skeleton + precision_skeleton.T
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral*true_dag)/np.sum(true_dag))
@@ -49,12 +50,9 @@ for ii in range(3):
         # estimated_moral = estimated_moral.values
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))
 
-        estimated_moral = pd.read_table(
-            f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt',
-            sep=',', header=None)
-        estimated_moral = estimated_moral.values
+        true_moral = true_moral + true_moral.T
         start = time.time()
-        est, _ = CD(data, estimated_moral, MAX_cycles=400, lam=np.sqrt(5*np.log(P) / N), tol=0.01)
+        est, _ = CD(data, true_moral, MAX_cycles=400, lam=np.sqrt(3*np.log(P) / N))
         end = time.time()
         times.append(end-start)
         est_ = np.array([[1 if i != j and est[i, j] != 0 else 0 for j in range(P)] for i in range(P)])
@@ -68,10 +66,9 @@ for ii in range(3):
         SHDs = compute_SHD(skeleton_estimated, skeleton_true, True)
         TPR = np.sum(np.logical_and(est_, true_dag)) / np.sum(true_dag)
         FPR = (np.sum(est_) - np.sum(np.logical_and(est_, true_dag))) / (P * P - np.sum(true_dag))
-        print(f"TPR: {TPR}; FPR:{FPR}; d_cpdag:{SHD_cpdag}; Time:{end-start}")
+        print(f"TPR: {TPR}; FPR:{FPR}; SHDs:{SHDs}")
         results.append([dataset, iter, SHDs, TPR, FPR, SHD_cpdag, end-start])
     print(np.mean(d_cpdags), np.mean(times))
-    results_df = pd.DataFrame(results, columns=['dataset', 'iter', 'SHD', 'TPR', 'FPR', 'd_cpdag', 'Time'])
-    print(results_df)
-    # results_df.to_csv('micodag-cd_large_est_results.csv', index=False)
+results_df = pd.DataFrame(results, columns=['dataset', 'iter', 'SHD', 'TPR', 'FPR', 'd_cpdag', 'Time'])
+# results_df.to_csv('./Results/test_largegraphs.csv', index=False)
 

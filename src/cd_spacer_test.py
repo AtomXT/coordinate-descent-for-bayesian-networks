@@ -30,7 +30,7 @@ def EqVarDAG_TD_internal(X):
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../../Data/RealWorldDatasets_ID/"
+    folder_path = "../Data/RealWorldDatasets_ID/"
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     graph_path = folder_path + network + "/Sparse_Original_edges.txt"
     moral_path = folder_path + network + f"/superstructure_glasso_iter_{iter}.txt"

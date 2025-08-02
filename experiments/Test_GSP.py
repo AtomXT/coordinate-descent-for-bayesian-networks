@@ -1,13 +1,10 @@
-import causaldag
-from causaldag import rand, partial_correlation_suffstat, partial_correlation_test, MemoizedCI_Tester, gsp
-import numpy as np
-from Code.src.cd_spacer import *
+from src.cd_spacer import *
 from collections import deque
 
 import time
 import os
-from sklearn.covariance import GraphicalLasso
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def topological_sort(adj_matrix):
     n = len(adj_matrix)
@@ -38,7 +35,7 @@ def topological_sort(adj_matrix):
     return topo_order
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../../Data/RealWorldDatasetsTXu_smallalpha/"
+    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasetsTXu_smallalpha/")
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     file_path = folder_path + f"{network}"
     graph_name = [i for i in os.listdir(
@@ -90,7 +87,7 @@ for dataset in datasets:
         # start_G2[np.abs(start_G2) < 0.3] = 0
         # print(start_G2)
 
-        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'{current_dir}/../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         new_estimated_moral = estimated_moral[random_order, :][:, random_order]
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))
