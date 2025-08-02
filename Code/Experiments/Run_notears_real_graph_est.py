@@ -39,7 +39,7 @@ for dataset in datasets:
         data, true_dag, moral_lasso, true_moral = read_data(dataset, 500, iter)
         N, P = data.shape
 
-        estimated_moral = pd.read_table(f'/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         exclude_edges = tuple(map(tuple, np.argwhere(estimated_moral == 0)))
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))

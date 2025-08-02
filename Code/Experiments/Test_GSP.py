@@ -90,7 +90,7 @@ for dataset in datasets:
         # start_G2[np.abs(start_G2) < 0.3] = 0
         # print(start_G2)
 
-        estimated_moral = pd.read_table(f'/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         new_estimated_moral = estimated_moral[random_order, :][:, random_order]
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))

@@ -79,7 +79,7 @@ for dataset in datasets:
         new_true_moral = true_moral[random_order, :][:, random_order]
         new_data = data[list(data.columns[random_order])]
 
-        estimated_moral = pd.read_table(f'/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         # estimated_moral = true_moral
         new_estimated_moral = estimated_moral[random_order, :][:, random_order]

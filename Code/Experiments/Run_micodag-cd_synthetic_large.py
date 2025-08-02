@@ -11,7 +11,7 @@ import micodag
 
 
 def read_data(graph, n, iter):
-    data_path = f"/Users/tongxu/Downloads/projects/MICODAG-CD/Data/SyntheticDatasets/large_graphs/graph{graph}"
+    data_path = f"../../Data/SyntheticDatasets/large_graphs/graph{graph}"
     graph = pd.read_table(f"{data_path}/DAG.txt", delimiter=',', dtype=int, header=None)
     data = pd.read_csv(f"{data_path}/data_n_{n}_iter_{iter}.csv", header=None)
     true_moral = pd.read_table(f"{data_path}/Moral_DAG.txt", delimiter=',', dtype=int, header=None)

@@ -7,7 +7,7 @@ from sklearn.covariance import graphical_lasso as glasso
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/"
+    folder_path = "../../Data/RealWorldDatasets/"
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     graph_path = folder_path + network + "/Sparse_Original_edges.txt"
     moral_path = folder_path + network + f"/superstructure_glasso_iter_{iter}.txt"
@@ -36,7 +36,7 @@ for dataset in datasets:
         data, true_dag, moral_lasso, true_moral = read_data(dataset, 500, iter)
         N, P = data.shape
 
-        estimated_moral = pd.read_table(f'/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
+        estimated_moral = pd.read_table(f'../../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
         estimated_moral = estimated_moral.values
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))
 
