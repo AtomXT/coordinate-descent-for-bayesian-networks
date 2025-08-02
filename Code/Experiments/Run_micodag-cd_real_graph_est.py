@@ -1,7 +1,6 @@
 # from micodagcd import *
 import pandas as pd
-
-from cd_spacer import *
+from Code.src.cd_spacer import *
 import time
 
 from sklearn.covariance import graphical_lasso as glasso
@@ -27,8 +26,8 @@ def read_data(network, n=500, iter=1):
 
 
 # dataset = "6cloud"
-datasets = ['1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar']
-# datasets = ['1dsep', '2asia']
+# datasets = ['1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar']
+datasets = ['1dsep', '2asia']
 results = []
 for dataset in datasets:
     d_cpdags = []
@@ -57,9 +56,9 @@ for dataset in datasets:
         TPR = np.sum(np.logical_and(est_, true_dag)) / np.sum(true_dag)
         FPR = (np.sum(est_) - np.sum(np.logical_and(est_, true_dag))) / (P * P - np.sum(true_dag))
         print(f"TPR: {TPR}; FPR:{FPR}")
-        results.append([dataset, iter, SHD_cpdag, end-start, TPR, FPR])
+        results.append([dataset, iter, SHD_cpdag, end-start, SHDs, TPR, FPR])
     print(np.mean(d_cpdags), np.mean(times))
 
-results_df = pd.DataFrame(results, columns=['dataset', 'iter', 'd_cpdag', 'Time', 'TPR', 'FPR'])
+results_df = pd.DataFrame(results, columns=['dataset', 'iter', 'd_cpdag', 'Time', 'SHDs', 'TPR', 'FPR'])
 print(results_df)
-results_df.to_csv(f'/Users/tongxu/Downloads/projects/MICODAG-CD/experiment results/RealGraph_estimated_superstructure_0.001_12.csv')
+# results_df.to_csv(f'/Users/tongxu/Downloads/projects/MICODAG-CD/experiment results/RealGraph_estimated_superstructure_0.001_12.csv')

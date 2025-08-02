@@ -1,13 +1,13 @@
 # Test whether cd can scale to large graphs
 
-from cd_spacer import CD
+from Code.src.cd_spacer import CD
 import time
 import pandas as pd
 import numpy as np
 import causaldag as cd
-import functions
+from Code.src import functions
 import micodag
-import temp_micodag
+# import temp_micodag
 
 
 def read_data(graph, n, iter):

@@ -1,17 +1,17 @@
 # Test whether cd can obtain optimal solution at different cases.
 
-from cd_spacer import CD
+from Code.src.cd_spacer import CD
 import time
 import pandas as pd
 import numpy as np
 import causaldag as cd
-import functions
+from Code.src import functions
 import micodag
-import temp_micodag
+# import temp_micodag
 
 
 def read_data(graph, n, iter):
-    data_path = f"./Data/SyntheticDatasets/graph{graph}"
+    data_path = f"/Users/tongxu/Downloads/projects/MICODAG-CD//Data/SyntheticDatasets/graph{graph}"
     graph = pd.read_table(f"{data_path}/DAG.txt", delimiter=',', dtype=int, header=None)
     data = pd.read_csv(f"{data_path}/data_n_{n}_iter_{iter}.csv", header=None)
     true_moral = pd.read_table(f"{data_path}/Moral_DAG.txt", delimiter=',', dtype=int, header=None)

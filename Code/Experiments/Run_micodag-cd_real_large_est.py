@@ -1,12 +1,12 @@
 # from micodagcd import *
-from cd_spacer import *
+from Code.src.cd_spacer import *
 import time
 # import closed_form as cf
 from sklearn.covariance import graphical_lasso as glasso
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = "../Data/RealWorldDatasets/"
+    folder_path = "../../Data/RealWorldDatasets/"
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     graph_path = folder_path + network + "/Sparse_Original_edges.txt"
     true_moral_path = folder_path + network + "/Sparse_Moral_edges.txt"

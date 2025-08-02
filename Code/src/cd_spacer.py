@@ -124,6 +124,249 @@ def CD(X, moral, lam=0.01, MAX_cycles=100, tol=1e-2):
     return opt_Gamma, min_obj
 
 
+def EqVarDAG_TD_internal(X):
+    n, p = X.shape
+    done = [p]  # Initialize with an invalid index (p is out of bounds)
+    S = np.cov(X, rowvar=False)  # Compute covariance matrix
+    Sinv = np.linalg.inv(S)  # Compute inverse of the covariance matrix
+
+    for i in range(p):
+        # Exclude already selected variables
+        remaining = [j for j in range(p) if j not in done]
+        # Submatrix of Sinv for remaining variables
+        Sinv_sub = Sinv[np.ix_(remaining, remaining)]
+        # Compute diagonal of the inverse of the submatrix
+        diag_inv = np.diag(np.linalg.inv(Sinv_sub))
+        # Find the variable with the minimum diagonal value
+        v = remaining[np.argmin(diag_inv)]
+        done.append(v)
+
+    # Remove the initial invalid index (p) and return the topological order
+    return {'TO': done[1:], 'support': None}
+
+
+def CD_order(X, moral, lam=0.01, MAX_cycles=100, tol=1e-6, start=None, cholesky=False):
+    """
+
+    X: N by P data matrix
+    """
+    TO = np.array(EqVarDAG_TD_internal(X)['TO'])
+    # TO = np.array([i for i in range(X.shape[1])])
+    original_order = np.argsort(TO)
+    N, P = X.shape
+
+    # Reorder the adjacency matrix
+    moral = moral[TO, :][:, TO]
+    X = X[list(X.columns[TO])]
+    sigma = np.cov(X.T)
+    if start is not None:
+        start = start[TO, :][:, TO]
+    if cholesky:
+        start = np.linalg.inv(np.linalg.cholesky(np.cov(X.T)).T)
+        diag_Sigma = np.sqrt(np.diag(sigma))  # shape (p,)
+
+        # Broadcast threshold matrix: each row u is lambda / Sigma[u,u]
+        thresholds = 2*lam / diag_Sigma[:, np.newaxis]  # shape (p, 1)
+
+        # Apply thresholding
+        start = start * (np.abs(start) >= thresholds)
+        # start[np.abs(start) < 0.3] = 0
+
+
+
+    # sigma = (X.T@X/N).values
+    Gamma = np.eye(P) if start is None else start.copy()
+    objs = []
+    min_obj = float('inf')
+    opt_Gamma = None
+    support_counter = defaultdict(int)
+    for t in range(MAX_cycles):
+        if t % 10 == 0:
+            print(f"cycle: {t}")
+        for u in range(P):
+            Gamma[u, u] = gamma_hat_diag(Gamma, sigma, u)
+            for v in range(P):
+                if u != v:
+                    if moral[u, v] == 1:
+                        temp_gamma = Gamma.copy()
+                        temp_gamma -= np.diag(np.diag(temp_gamma))
+                        cycle_uv = cycle(temp_gamma, u, v)
+                        if cycle_uv:
+                            Gamma[u, v] = 0
+                        else:
+                            Gamma[u, v] = gamma_hat(Gamma, sigma, u, v, lam)
+                    else:
+                        Gamma[u, v] = 0
+        obj_t = objective(Gamma, sigma, lam)
+
+        support_i = str(np.array(Gamma != 0, dtype=int).flatten())
+        support_counter[support_i] += 1
+
+        # spacer step
+        if support_counter[support_i] == 5:
+            # print("spacer step is working")
+            for u, v in np.transpose(np.nonzero(Gamma)):
+                if u != v:
+                    Gamma[u, v] = gamma_hat(Gamma, sigma, u, v, lam)
+                else:
+                    Gamma[u, u] = gamma_hat_diag(Gamma, sigma, u)
+            support_counter[support_i] = 0
+            obj_t = objective(Gamma, sigma, lam)
+
+
+        # if len(objs) > 1 and obj_t == objs[-1]:
+        if len(objs) > 1 and objs[-1] - obj_t < tol:
+            objs.append(obj_t)
+            print(f"stop at the {t}-th iteration.")
+            break
+        if obj_t < min_obj:
+            min_obj = obj_t
+            opt_Gamma = Gamma.copy()
+        objs.append(obj_t)
+        # print(opt_Gamma)
+
+    # print(objs)
+    # print(objsi)
+
+    # back to the original order
+    opt_Gamma = opt_Gamma[original_order, :][:, original_order]
+
+    return opt_Gamma, min_obj
+
+
+from causaldag import rand, partial_correlation_suffstat, partial_correlation_test, MemoizedCI_Tester, gsp
+def topological_sort(adj_matrix):
+    n = len(adj_matrix)
+    in_degree = [0] * n
+
+    # Step 1: Compute in-degrees
+    for j in range(n):
+        for i in range(n):
+            if adj_matrix[i][j]:
+                in_degree[j] += 1
+
+    # Step 2: Initialize queue with nodes of in-degree 0
+    queue = deque([i for i in range(n) if in_degree[i] == 0])
+    topo_order = []
+
+    while queue:
+        u = queue.popleft()
+        topo_order.append(u)
+        for v in range(n):
+            if adj_matrix[u][v]:
+                in_degree[v] -= 1
+                if in_degree[v] == 0:
+                    queue.append(v)
+
+    if len(topo_order) != n:
+        raise ValueError("The graph is not a DAG (contains a cycle).")
+
+    return np.array(topo_order)
+def CD_GSP_order(X, moral, lam=0.01, MAX_cycles=100, tol=1e-6, start=None, cholesky=False):
+    """
+
+    X: N by P data matrix
+    """
+    N, P = X.shape
+
+    indices = np.where(moral != 0)
+    possible_edges_est = tuple(zip(indices[0], indices[1]))
+    fixed_gaps_est = set()
+    for i in range(P):
+        for j in range(P):
+            if (i, j) not in possible_edges_est:
+                fixed_gaps_est.add((i, j))
+
+    suffstat = partial_correlation_suffstat(X)
+    ci_tester = MemoizedCI_Tester(partial_correlation_test, suffstat, alpha=1e-3)
+    est_dag = gsp(set(range(P)), ci_tester, fixed_gaps=fixed_gaps_est)
+    B_arcs = est_dag.to_amat()[0]
+    TO = topological_sort(B_arcs)
+
+    # TO = np.array(EqVarDAG_TD_internal(X)['TO'])
+    # TO = np.array([i for i in range(X.shape[1])])
+    original_order = np.argsort(TO)
+
+
+    # Reorder the adjacency matrix
+    moral = moral[TO, :][:, TO]
+    X = X[list(X.columns[TO])]
+    sigma = np.cov(X.T)
+    if start is not None:
+        start = start[TO, :][:, TO]
+    if cholesky:
+        start = np.linalg.inv(np.linalg.cholesky(np.cov(X.T)).T)
+        diag_Sigma = np.sqrt(np.diag(sigma))  # shape (p,)
+
+        # Broadcast threshold matrix: each row u is lambda / Sigma[u,u]
+        thresholds = 2*lam / diag_Sigma[:, np.newaxis]  # shape (p, 1)
+
+        # Apply thresholding
+        # start = start * (np.abs(start) >= thresholds)
+        # start[np.abs(start) < 0.3] = 0
+
+
+
+    # sigma = (X.T@X/N).values
+    Gamma = np.eye(P) if start is None else start.copy()
+    objs = []
+    min_obj = float('inf')
+    opt_Gamma = None
+    support_counter = defaultdict(int)
+    for t in range(MAX_cycles):
+        if t % 10 == 0:
+            print(f"cycle: {t}")
+        for u in range(P):
+            Gamma[u, u] = gamma_hat_diag(Gamma, sigma, u)
+            for v in range(P):
+                if u != v:
+                    if moral[u, v] == 1:
+                        temp_gamma = Gamma.copy()
+                        temp_gamma -= np.diag(np.diag(temp_gamma))
+                        cycle_uv = cycle(temp_gamma, u, v)
+                        if cycle_uv:
+                            Gamma[u, v] = 0
+                        else:
+                            Gamma[u, v] = gamma_hat(Gamma, sigma, u, v, lam)
+                    else:
+                        Gamma[u, v] = 0
+        obj_t = objective(Gamma, sigma, lam)
+
+        support_i = str(np.array(Gamma != 0, dtype=int).flatten())
+        support_counter[support_i] += 1
+
+        # spacer step
+        if support_counter[support_i] == 5:
+            # print("spacer step is working")
+            for u, v in np.transpose(np.nonzero(Gamma)):
+                if u != v:
+                    Gamma[u, v] = gamma_hat(Gamma, sigma, u, v, lam)
+                else:
+                    Gamma[u, u] = gamma_hat_diag(Gamma, sigma, u)
+            support_counter[support_i] = 0
+            obj_t = objective(Gamma, sigma, lam)
+
+
+        # if len(objs) > 1 and obj_t == objs[-1]:
+        if len(objs) > 1 and objs[-1] - obj_t < tol:
+            objs.append(obj_t)
+            print(f"stop at the {t}-th iteration.")
+            break
+        if obj_t < min_obj:
+            min_obj = obj_t
+            opt_Gamma = Gamma.copy()
+        objs.append(obj_t)
+        # print(opt_Gamma)
+
+    # print(objs)
+    # print(objsi)
+
+    # back to the original order
+    opt_Gamma = opt_Gamma[original_order, :][:, original_order]
+
+    return opt_Gamma, min_obj
+
+
 # def CD_cyclic(X, lam=0.01, MAX_cycles=10):
 #     """
 #
@@ -225,7 +468,7 @@ def mat2ind(mat, p):
 
 
 if __name__ == '__main__':
-    data, true_dag, moral_lasso, true_moral = read_data("12hepar", n=500, iter=1)
+    data, true_dag, moral_lasso, true_moral = read_data("1asia", n=500, iter=1)
     N, P = data.shape
     true_moral = true_moral + true_moral.T
     # ones = np.ones((P, P))
