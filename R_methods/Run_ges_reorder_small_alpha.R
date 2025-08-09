@@ -4,12 +4,9 @@ library(pcalg)
 library(igraph)
 library(glue)
 
-source("/Users/tongxu/Downloads/projects/MICODAG-CD/R_methods/helper_functions.R")
-
-setwd("/Users/tongxu/Downloads/projects/MICODAG-CD")
-dataset.folder <- "/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasetsTXu_smallalpha/"
-
-
+source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/Run_ges_est.R")
+wd = getwd()
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
 datasets <- list.files(dataset.folder)
 
 results <- data.frame()
@@ -84,7 +81,7 @@ for (dataset in datasets) {
   }
   
 }
-
-write.csv(results, "./experiment results/comparison with benchmarks/ges_results_est_default_reorder.csv",row.names=FALSE)
+print(results)
+# write.csv(results, "./experiment results/comparison with benchmarks/ges_results_est_default_reorder.csv",row.names=FALSE)
 
 

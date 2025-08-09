@@ -9,10 +9,9 @@ library(pcalg)
 library(igraph)
 library(glue)
 
-source("/Users/tongxu/Downloads/projects/MICODAG-CD//R_methods/helper_functions.R")
-
-setwd("/Users/tongxu/Downloads/projects/MICODAG-CD")
-dataset.folder <- "/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets"
+source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/Run_ges_est.R")
+wd = getwd()
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
 datasets <- c("13pathfinder", "14munin", "15andes", "16diabetes")
 n_samples <- c(545, 930, 1115, 2065)
 #####################################
