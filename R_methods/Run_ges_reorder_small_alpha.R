@@ -4,7 +4,7 @@ library(pcalg)
 library(igraph)
 library(glue)
 
-source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/Run_ges_est.R")
+source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/helper_functions.R")
 wd = getwd()
 dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
 datasets <- list.files(dataset.folder)
@@ -82,6 +82,6 @@ for (dataset in datasets) {
   
 }
 print(results)
-# write.csv(results, "./experiment results/comparison with benchmarks/ges_results_est_default_reorder.csv",row.names=FALSE)
+write.csv(results, "./experiment results/comparison with benchmarks/ges_results_est_default_reorder_small_diff.csv",row.names=FALSE)
 
 

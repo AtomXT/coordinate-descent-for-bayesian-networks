@@ -5,16 +5,18 @@
 ##############
 library(igraph)
 library(MASS)
-library(glue)
 
-data.path = "/Users/tongxu/Downloads/projects/MICODAG-CD/Data"
+wd = getwd()
+data.path = paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
 setwd(data.path)
 
 
-filenames <- c('13pathfinder', '14munin', '15andes', '16diabetes', '17pigs', '18link')
-number.nodes <- c(109, 186, 223, 413, 441, 724)
+# filenames <- c('13pathfinder', '14munin', '15andes', '16diabetes')
+filenames <- c('14munin')
+number.nodes <- c(186)
+# number.nodes <- c(109, 186, 223, 413)
 eweights <- c(-0.8, -0.6, 0.6, 0.8)
-sigvec <- c(0.5, 1, 1.5)
+sigvec <- c(0.8, 1, 1.2)
 nsamples <- number.nodes*50
 ndata <- 10
 
@@ -23,8 +25,8 @@ for(ii in 1:length(filenames)){
   fname = filenames[ii]
   
   ## read the edge list 
-  filename <- list.files(glue("{data.path}/RealWorldDatasets/{fname}"), "Sparse_Original")
-  elist <- read.csv(glue("{data.path}/RealWorldDatasets/{fname}/{filename}"))
+  filename <- list.files(paste(data.path, fname, sep="/"),"Sparse_Original")
+  elist <- read.csv(paste(data.path, fname, filename, sep="/"))
   
   ## create a graph object and get adjacency matrix
   gg <- graph_from_edgelist(as.matrix(elist))
@@ -51,7 +53,7 @@ for(ii in 1:length(filenames)){
     
     datfilename <- paste0(
       paste("data", fname, "n", nsamples[ii], "iter", jj, sep="_"), ".csv")
-    datfilename <- glue("{data.path}/RealWorldDatasets/{fname}/{datfilename}")
+    datfilename <- paste(data.path, fname, datfilename, sep="/")
     write.table(datmat, datfilename, sep = ",", 
                 row.names=FALSE, col.names=FALSE)
   }

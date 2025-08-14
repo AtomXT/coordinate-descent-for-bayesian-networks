@@ -9,7 +9,7 @@ library(pcalg)
 library(igraph)
 library(glue)
 
-source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/Run_ges_est.R")
+source("/projects/p32811/coordinate-descent-for-bayesian-networks/R_methods/helper_functions.R")
 wd = getwd()
 dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
 datasets <- c("13pathfinder", "14munin", "15andes", "16diabetes")

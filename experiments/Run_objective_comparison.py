@@ -1,6 +1,6 @@
 # Test whether cd can obtain optimal solution at different cases.
 
-from src.cd_spacer import CD
+from src.cd_spacer import CD, CD_order
 import time
 import pandas as pd
 import numpy as np
@@ -29,11 +29,11 @@ def read_data(graph, n, iter):
 
 results_cd = []
 results_micodag = []
-n_samples = [50, 100, 200, 300, 400, 500]
+n_samples = [50, 100, 200, 300, 400, 500, 5000]
 # n_samples = [5000]
 
 # test of CD
-for graph_i in range(1, 2):
+for graph_i in range(1, 4):
     for n_sample in n_samples:
         for iter in range(1, 11):
             data, true_dag, true_moral, _ = read_data(graph_i, n_sample, iter)
@@ -42,7 +42,7 @@ for graph_i in range(1, 2):
             # true_moral = np.triu(np.ones((P, P)), 1)
             true_moral = true_moral + true_moral.T
             start = time.time()
-            est_CD, obj = CD(data, true_moral, MAX_cycles=400, lam= np.sqrt(5*np.log(P) / N))
+            est_CD, obj = CD_order(data, true_moral, MAX_cycles=400, lam= np.sqrt(5*np.log(P) / N), cholesky=True)
             end = time.time()
             time_i = end-start
             est_CD_ = np.array([[1 if i != j and est_CD[i, j] != 0 else 0 for j in range(P)] for i in range(P)])
@@ -61,9 +61,8 @@ for graph_i in range(1, 2):
             print(f"TPR: {TPR}; FPR:{FPR}")
 result_cd_df = pd.DataFrame(results_cd, columns=['graph', 'n_sample', 'iter', 'd_cpdag', 'obj', 'TPR', 'FPR', 'time'])
 # np.sum([-2*np.log(est[i,i]) for i in range(P)]) + np.trace(est@est.T@data.T@data/50) + np.sum(est_)*5*np.log(P)/N  # for debug
-# result_cd_df.to_csv('./Results/synthetic_results_CD.csv', index=False)
+result_cd_df.to_csv('./experiment results/synthetic_results_CD_order.csv', index=False,header=True)
 print(result_cd_df)
-print(result_cd_df.mean())
 
 
 # # # test of micodag
