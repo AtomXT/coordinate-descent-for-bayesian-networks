@@ -145,14 +145,17 @@ def EqVarDAG_TD_internal(X):
     return {'TO': done[1:], 'support': None}
 
 
-def CD_order(X, moral, lam=0.01, MAX_cycles=100, tol=1e-6, start=None, cholesky=False):
+def CD_order(X, moral, ordering=None, lam=0.01, MAX_cycles=100, tol=1e-6, start=None, cholesky=False):
     """
 
     X: N by P data matrix
     """
-    TO = np.array(EqVarDAG_TD_internal(X)['TO'])
-    # TO = np.array([i for i in range(X.shape[1])])
-    original_order = np.argsort(TO)
+    if not ordering:
+        TO = np.array(EqVarDAG_TD_internal(X)['TO'])
+        # TO = np.array([i for i in range(X.shape[1])])
+        original_order = np.argsort(TO)
+    else:
+        original_order = np.argsort(ordering)  # consistent for 0-based or 1-based indexing
     N, P = X.shape
 
     # Reorder the adjacency matrix
