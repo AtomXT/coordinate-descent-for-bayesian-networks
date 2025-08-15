@@ -150,12 +150,12 @@ def CD_order(X, moral, ordering=None, lam=0.01, MAX_cycles=100, tol=1e-6, start=
 
     X: N by P data matrix
     """
-    if not ordering:
+    if ordering is None:
         TO = np.array(EqVarDAG_TD_internal(X)['TO'])
         # TO = np.array([i for i in range(X.shape[1])])
-        original_order = np.argsort(TO)
     else:
-        original_order = np.argsort(ordering)  # consistent for 0-based or 1-based indexing
+        TO = np.argsort(ordering)  # consistent for 0-based or 1-based indexing
+    original_order = np.argsort(TO)
     N, P = X.shape
 
     # Reorder the adjacency matrix

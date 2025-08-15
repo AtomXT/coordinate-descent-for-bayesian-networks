@@ -63,7 +63,7 @@ for (dataset in datasets) {
     edges = matrix(as.numeric(get.edgelist(gdag0m, names=TRUE)),ncol = 2)
     graph_pred = igraph.to.graphNEL(gdag0m)
 
-    ordering <- as.integer(sub("V", "", as_ids(topo_sort(graph_from_graphnel(pdag2dag(graph_pred)$graph), mode = "out"))))
+    ordering <- result$TO
     write.table(ordering, file = paste0(paste(dataset.folder,dataset,sep="/"), "/td_topo_order_iter", kk,".txt"), row.names = FALSE, col.names = FALSE)
 
     cpdag_ori <- dag2cpdag(graph_ori)
