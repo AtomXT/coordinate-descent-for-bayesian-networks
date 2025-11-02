@@ -17,9 +17,9 @@ source("R_methods/EqVarDAG_TD.R")
 
 
 wd = getwd()
-dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_largealpha")
 datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
-
+# datasets <- c('2asia')
 
 #####################################
 # Run for each dataset
@@ -44,6 +44,7 @@ for (dataset in datasets) {
 
     # generate a graph object from original graph
     nodes = dim(X)[2]
+    samples = dim(X)[1]
     ori_gg <- make_empty_graph(n = nodes)  
     for (x in c(1:nrow(true.graph))){
       ori_gg <- ori_gg %>% add_edges(c(true.graph[x,1],true.graph[x,2]))
@@ -52,7 +53,7 @@ for (dataset in datasets) {
     graph_ori = igraph.to.graphNEL(ori_gg)
     # run
     start_time <- Sys.time()
-    result <- EqVarDAG_TD(X)
+    result <- EqVarDAG_TD(X, mtd='rls',threshold=sqrt(60*log(nodes)/samples))
     end_time <- Sys.time()
     TIME <- as.numeric(end_time - start_time, units="secs")
     
@@ -63,7 +64,10 @@ for (dataset in datasets) {
     gdag0m = graph_from_adjacency_matrix(result$adj, mode = "directed", weighted = NULL, diag = TRUE, add.colnames = NULL, add.rownames = NA)
     edges = matrix(as.numeric(get.edgelist(gdag0m, names=TRUE)),ncol = 2)
     graph_pred = igraph.to.graphNEL(gdag0m)
-    
+
+    ordering <- result$TO
+    # write.table(ordering, file = paste0(paste(dataset.folder,dataset,sep="/"), "/td_topo_order_iter", kk,".txt"), row.names = FALSE, col.names = FALSE)
+
     cpdag_ori <- dag2cpdag(graph_ori)
     cpdag_pred <- dag2cpdag(graph_pred)
     d_cpdag <- sum(abs(as(cpdag_ori, "matrix") - as(cpdag_pred, "matrix")))
@@ -77,6 +81,7 @@ for (dataset in datasets) {
   }
 }
 print(results)
+print(mean(results$d_cpdag))
 
 # write the results into a csv file
-write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small_diff.csv",row.names=FALSE)
+write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_extra_large_diff_regression.csv",row.names=FALSE)

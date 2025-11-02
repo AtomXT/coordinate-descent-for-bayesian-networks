@@ -42,7 +42,7 @@ for graph_i in range(3,4):
             # true_moral = true_moral + true_moral.T
             gurobi_parameters = {
                 'OutputFlag': 1,
-                'Threads': 16,
+                'Threads': 8,
                 'TimeLimit': 500
             }
             start = time.time()

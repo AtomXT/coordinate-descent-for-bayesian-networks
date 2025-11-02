@@ -10,8 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def read_data(network, n=500, iter=1):
-    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasetsTXu_largealpha/")
-    # folder_path = "/Users/tongxu/Downloads/projects/MICODAG-CD/Data/RealWorldDatasets/"
+    folder_path = os.path.join(current_dir, "../Data/RealWorldDatasetsTXu_smallalpha1/")
     data_path = folder_path + f"{network}/data_{network}_n_{n}_iter_{iter}.csv"
     file_path = folder_path + f"{network}"
     graph_name = [i for i in os.listdir(
@@ -34,44 +33,33 @@ def read_data(network, n=500, iter=1):
     return data, graph_, moral, true_moral_
 
 
-# dataset = "6cloud"
-# datasets = ['1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar']
-datasets = ['5rain']
+# n_variables = [6, 8, 9, 15, 14, 16, 18, 20, 27, 27, 56, 70]
+# swapped_indices = []
+# for dataset in n_variables:
+#     swapped_indices.append(random.sample(range(dataset), 2))
+# print(swapped_indices)
+# swapped_indices = [[3, 4], 
+# [4, 0], [1, 7], [6, 2], [5, 11], [12, 15], [6, 0], [9, 19], [7, 15], [19, 3], [13, 16], [32, 12]]
+
+swapped_indices = [[1,2],[5,6],[1,2],[12,13],[10,11],[4,5],[7,8],[16,17],[2,3],[7,8],[2,3],[28,29]]
+
+datasets = ['1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar']
+# datasets = ['6cloud']
 results = []
-# np.random.seed(2025)
-for dataset in datasets:
+for data_i, dataset in enumerate(datasets):
     d_cpdags = []
     times = []
+    index_1, index_2 = swapped_indices[data_i]
     for iter in range(1, 11):
-        data, true_dag, moral_lasso, true_moral = read_data(dataset, 500, iter)
+        data, true_dag, estimated_moral, true_moral = read_data(dataset, 500, iter)
         N, P = data.shape
-
-        # randomized reorder
-        # random_order = np.random.permutation(P)
-        # random_order = np.array([i for i in range(P)])
-
-        # # Reorder the adjacency matrix
-        # true_dag = true_dag[random_order, :][:, random_order]
-        # new_true_moral = true_moral[random_order, :][:, random_order]
-        # new_data = data[list(data.columns[random_order])]
-
-        # start_G2 = np.linalg.cholesky(np.linalg.inv(np.cov(new_data.T))).T
-        # model = GraphicalLasso(alpha=0.5)  # alpha controls sparsity (higher = more sparse)
-        # model.fit(new_data)
-        #
-        # # Access precision (inverse covariance) and covariance
-        # start_G = np.triu(model.precision_)
-
-        # start_G2[np.abs(start_G2) < 0.3] = 0
-        # print(start_G2)
-
-        # estimated_moral = pd.read_table(f'{current_dir}/../Data/RealWorldDatasets/{dataset}/superstructure_glasso_iter_{iter}.txt', sep=',', header=None)
-        # estimated_moral = estimated_moral.values
-        # new_estimated_moral = estimated_moral[random_order, :][:, random_order]
+        new_ordering = np.arange(P)
+        new_ordering[index_1], new_ordering[index_2] = index_2, index_1
+        estimated_moral = estimated_moral.values
         # print(np.sum(estimated_moral), np.sum(true_moral), np.sum(estimated_moral * true_dag) / np.sum(true_dag))
 
         start = time.time()
-        est, _ = CD_order(data, moral_lasso.values, MAX_cycles=400, lam=np.sqrt(5*np.log(P) / N), cholesky=True)
+        est, _ = CD_order(data, estimated_moral, ordering=new_ordering, MAX_cycles=400, lam=np.sqrt(5*np.log(P) / N), cholesky=True)
         end = time.time()
         times.append(end-start)
         est_ = np.array([[1 if i != j and est[i, j] != 0 else 0 for j in range(P)] for i in range(P)])
@@ -92,4 +80,4 @@ for dataset in datasets:
 results_df = pd.DataFrame(results, columns=['dataset', 'iter', 'd_cpdag', 'Time', 'SHDs', 'TPR', 'FPR'])
 print(results_df)
 print(results_df.describe())
-# results_df.to_csv(f'./experiment results/comparison with benchmarks/RealGraph_est_extra_large_diff.csv', index=False)
+results_df.to_csv('./experiment results/cd_vs_regression/CD_slightly_incoorect_order_small_diff1.csv', index=False, header=True)

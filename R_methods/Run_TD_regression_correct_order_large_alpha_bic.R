@@ -13,12 +13,13 @@ library(glue)
 
 # import helper functions
 source("R_methods/helper_functions.R")
-source("R_methods/EqVarDAG_TD.R")
+source("R_methods/EqVarDAG_TD_fixed_order.R")
 
 
 wd = getwd()
-dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
-datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_largealpha")
+# datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
+datasets <- c('5rain')
 
 
 #####################################
@@ -44,6 +45,7 @@ for (dataset in datasets) {
 
     # generate a graph object from original graph
     nodes = dim(X)[2]
+    samples = dim(X)[1]
     ori_gg <- make_empty_graph(n = nodes)  
     for (x in c(1:nrow(true.graph))){
       ori_gg <- ori_gg %>% add_edges(c(true.graph[x,1],true.graph[x,2]))
@@ -52,7 +54,7 @@ for (dataset in datasets) {
     graph_ori = igraph.to.graphNEL(ori_gg)
     # run
     start_time <- Sys.time()
-    result <- EqVarDAG_TD(X)
+    result <- EqVarDAG_TD(X, mtd='rls',threshold=sqrt(18*log(nodes)/samples))
     end_time <- Sys.time()
     TIME <- as.numeric(end_time - start_time, units="secs")
     
@@ -77,6 +79,6 @@ for (dataset in datasets) {
   }
 }
 print(results)
-
+print(mean(results$d_cpdag))
 # write the results into a csv file
-write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small_diff.csv",row.names=FALSE)
+# write.csv(results, "./experiment results/cd_vs_regression/TD_regression_correct_ordering_large_diff.csv",row.names=FALSE)

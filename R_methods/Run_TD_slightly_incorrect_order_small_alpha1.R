@@ -13,14 +13,16 @@ library(glue)
 
 # import helper functions
 source("R_methods/helper_functions.R")
-source("R_methods/EqVarDAG_TD.R")
+source("R_methods/EqVarDAG_TD_fixed_order.R")
 
 
 wd = getwd()
-dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha1")
 datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
 
-
+# These indices are randomly generated. We store them to keep the swapped indices the same across methods
+swapped_indices <- list(c(1,2), c(5,6), c(1,2), c(12,13), c(10,11), c(4,5), c(7,8), c(16,17), c(2,3), c(7,8), c(2,3), c(28,29))
+swap_dict <- setNames(swapped_indices, datasets)
 #####################################
 # Run for each dataset
 #####################################
@@ -50,9 +52,16 @@ for (dataset in datasets) {
       
     }
     graph_ori = igraph.to.graphNEL(ori_gg)
+
+    swap_pair <- swap_dict[[dataset]]
+    index1 <- swap_pair[1]  
+    index2 <- swap_pair[2]
+    new_ordering <- 1:nodes 
+    new_ordering[c(index1+1, index2+1)] <- c(index2+1, index1+1)
+
     # run
     start_time <- Sys.time()
-    result <- EqVarDAG_TD(X)
+    result <- EqVarDAG_TD(X, ordering=new_ordering)
     end_time <- Sys.time()
     TIME <- as.numeric(end_time - start_time, units="secs")
     
@@ -79,4 +88,4 @@ for (dataset in datasets) {
 print(results)
 
 # write the results into a csv file
-write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small_diff.csv",row.names=FALSE)
+write.csv(results, "./experiment results/cd_vs_regression/TD_slightly_incorrect_ordering_small1_diff.csv",row.names=FALSE)

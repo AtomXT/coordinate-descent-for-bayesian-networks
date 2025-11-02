@@ -13,11 +13,11 @@ library(glue)
 
 # import helper functions
 source("R_methods/helper_functions.R")
-source("R_methods/EqVarDAG_TD.R")
+source("R_methods/EqVarDAG_TD_fixed_order.R")
 
 
 wd = getwd()
-dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_largealpha")
 datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
 
 
@@ -79,4 +79,4 @@ for (dataset in datasets) {
 print(results)
 
 # write the results into a csv file
-write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small_diff.csv",row.names=FALSE)
+write.csv(results, "./experiment results/cd_vs_regression/TD_correct_ordering_large_diff.csv",row.names=FALSE)

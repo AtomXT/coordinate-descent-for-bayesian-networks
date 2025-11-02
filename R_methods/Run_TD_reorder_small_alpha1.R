@@ -17,7 +17,7 @@ source("R_methods/EqVarDAG_TD.R")
 
 
 wd = getwd()
-dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha")
+dataset.folder <- paste0(wd,"/Data/RealWorldDatasetsTXu_smallalpha1")
 datasets <- c('1dsep', '2asia', '3bowling', '4insuranceSmall', '5rain', '6cloud', '7funnel', '8galaxy', '9insurance', '10factors', '11hfinder', '12hepar')
 
 
@@ -79,4 +79,4 @@ for (dataset in datasets) {
 print(results)
 
 # write the results into a csv file
-write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small_diff.csv",row.names=FALSE)
+write.csv(results, "./experiment results/comparison with benchmarks/TD_RealGraph_est_small1_diff.csv",row.names=FALSE)
